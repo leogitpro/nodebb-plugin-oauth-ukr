@@ -47,8 +47,8 @@
 	 */
 
 	const constants = Object.freeze({
-		type: '',	// Either 'oauth' or 'oauth2'
-		name: '',	// Something unique to your OAuth provider in lowercase, like "github", or "nodebb"
+		type: 'oauth2',	// Either 'oauth' or 'oauth2'
+		name: 'ukr',	// Something unique to your OAuth provider in lowercase, like "github", or "nodebb"
 		oauth: {
 			requestTokenURL: '',
 			accessTokenURL: '',
@@ -57,12 +57,12 @@
 			consumerSecret: nconf.get('oauth:secret'),	// don't change this line
 		},
 		oauth2: {
-			authorizationURL: '',
-			tokenURL: '',
+			authorizationURL: nconf.get('oauth:auth'),
+			tokenURL: nconf.get('oauth:token'),
 			clientID: nconf.get('oauth:id'),	// don't change this line
 			clientSecret: nconf.get('oauth:secret'),	// don't change this line
 		},
-		userRoute: '',	// This is the address to your app's "user profile" API endpoint (expects JSON)
+		userRoute: nconf.get('oauth:profile')	// This is the address to your app's "user profile" API endpoint (expects JSON)
 	});
 
 	const OAuth = {};
@@ -181,8 +181,10 @@
 		// console.log(data);
 
 		var profile = {};
-		profile.id = data.id;
-		profile.displayName = data.name;
+		profile.id = data.advocateId;
+		// profile.displayName = data.firstname;
+		// profile.displayName = data.middlename;
+		profile.displayName = data.surname;
 		profile.emails = [{ value: data.email }];
 
 		// Do you want to automatically make somebody an admin? This line might help you do that...
