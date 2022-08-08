@@ -49,13 +49,6 @@
 	const constants = Object.freeze({
 		type: 'oauth2',	// Either 'oauth' or 'oauth2'
 		name: 'ukr',	// Something unique to your OAuth provider in lowercase, like "github", or "nodebb"
-		oauth: {
-			requestTokenURL: '',
-			accessTokenURL: '',
-			userAuthorizationURL: '',
-			consumerKey: nconf.get('oauth:key'),	// don't change this line
-			consumerSecret: nconf.get('oauth:secret'),	// don't change this line
-		},
 		oauth2: {
 			authorizationURL: nconf.get('oauth:auth'),
 			tokenURL: nconf.get('oauth:token'),
@@ -67,7 +60,7 @@
 
 	const OAuth = {};
 	let configOk = false;
-	let passportOAuth;
+	let OAuth2Strategy;
 	let opts;
 
 	if (!constants.name) {
@@ -82,49 +75,24 @@
 
 	OAuth.getStrategy = function (strategies, callback) {
 		if (configOk) {
-			passportOAuth = require('passport-oauth')[constants.type === 'oauth' ? 'OAuthStrategy' : 'OAuth2Strategy'];
+			// OAuth2Strategy = require('passport-oauth')['OAuth2Strategy'];
+			OAuth2Strategy = require('passport-ukr');
 
-			if (constants.type === 'oauth') {
-				// OAuth options
-				opts = constants.oauth;
-				opts.callbackURL = nconf.get('url') + '/auth/' + constants.name + '/callback';
-
-				passportOAuth.Strategy.prototype.userProfile = function (token, secret, params, done) {
-
-					// If your OAuth provider requires the access token to be sent in the query  parameters
-					// instead of the request headers, comment out the next line:
-					this._oauth._useAuthorizationHeaderForGET = true;
-
-					this._oauth.get(constants.userRoute, token, secret, function (err, body/* , res */) {
-						if (err) {
-							return done(err);
-						}
-
-						try {
-							var json = JSON.parse(body);
-							OAuth.parseUserReturn(json, function (err, profile) {
-								if (err) return done(err);
-								profile.provider = constants.name;
-
-								done(null, profile);
-							});
-						} catch (e) {
-							done(e);
-						}
-					});
-				};
-			} else if (constants.type === 'oauth2') {
+			if (constants.type === 'oauth2') {
 				// OAuth 2 options
 				opts = constants.oauth2;
 				opts.callbackURL = nconf.get('url') + '/auth/' + constants.name + '/callback';
 
-				passportOAuth.Strategy.prototype.userProfile = function (accessToken, done) {
+				OAuth2Strategy.Strategy.prototype.userProfile = function (accessToken, done) {
 
 					// If your OAuth provider requires the access token to be sent in the query  parameters
 					// instead of the request headers, comment out the next line:
 					this._oauth2._useAuthorizationHeaderForGET = true;
 
 					this._oauth2.get(constants.userRoute, accessToken, function (err, body/* , res */) {
+						// winston.error('oauth get err');
+						// winston.error(err);
+						// winston.error(body);
 						if (err) {
 							return done(err);
 						}
@@ -146,7 +114,12 @@
 
 			opts.passReqToCallback = true;
 
-			passport.use(constants.name, new passportOAuth(opts, async (req, token, secret, profile, done) => {
+			passport.use(constants.name, new OAuth2Strategy(opts, async (req, token, secret, profile, done) => {
+				// winston.error('OAUTH debug profile' + profile);
+				// winston.error('OAUTH debug req' + req);
+				// winston.error('OAUTH debug token' + token);
+				// winston.error('OAUTH debug secret' + secret);
+				// winston.error('OAUTH debug opts' + opts);
 				const user = await OAuth.login({
 					oAuthid: profile.id,
 					handle: profile.displayName,
@@ -191,8 +164,8 @@
 		// profile.isAdmin = data.isAdmin ? true : false;
 
 		// Delete or comment out the next TWO (2) lines when you are ready to proceed
-		process.stdout.write('===\nAt this point, you\'ll need to customise the above section to id, displayName, and emails into the "profile" object.\n===');
-		return callback(new Error('Congrats! So far so good -- please see server log for details'));
+		// process.stdout.write('===\nAt this point, you\'ll need to customise the above section to id, displayName, and emails into the "profile" object.\n===');
+		// return callback(new Error('Congrats! So far so good -- please see server log for details'));
 
 		// eslint-disable-next-line
 		callback(null, profile);
