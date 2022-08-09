@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-oauth-ukr",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "NodeBB Plugin OAuth",
   "main": "library.js",
   "keywords": [

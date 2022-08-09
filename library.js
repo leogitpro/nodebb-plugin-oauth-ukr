@@ -188,6 +188,7 @@
 				username: payload.handle,
 				email: payload.email,
 			});
+			User.email.confirmByUid(uid);
 		}
 
 		// Save provider-specific information to the user
